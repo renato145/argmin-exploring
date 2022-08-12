@@ -1,5 +1,8 @@
 use argmin::{
-    core::{CostFunction, Executor, Gradient, Hessian},
+    core::{
+        observers::{ObserverMode, SlogLogger},
+        CostFunction, Executor, Gradient, Hessian,
+    },
     solver::{gradientdescent::SteepestDescent, linesearch::MoreThuenteLineSearch},
 };
 use argmin_testfunctions::{rosenbrock_2d, rosenbrock_2d_derivative, rosenbrock_2d_hessian};
@@ -45,9 +48,10 @@ fn main() {
     let solver = SteepestDescent::new(linesearch);
     let res = Executor::new(problem, solver)
         .configure(|state| state.param(init_param).max_iters(10))
+        .add_observer(SlogLogger::term(), ObserverMode::Always)
         .run()
         .unwrap();
     println!("{}", res);
     let state = res.state();
-    println!("{:#?}", state);
+    println!("{:?}", state);
 }
