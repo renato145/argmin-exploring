@@ -1,0 +1,11 @@
+[package]
+name = "argmin-exploring"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+argmin = { version = "0.6.0" }
+argmin-math = { version = "0.1.0", features = ["ndarray_latest-serde", "nalgebra_latest-serde"] }
+argmin_testfunctions = "0.1.1"
