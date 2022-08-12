@@ -1,5 +1,6 @@
 use argmin::{
     core::{
+        checkpointing::{CheckpointingFrequency, FileCheckpoint},
         observers::{ObserverMode, SlogLogger},
         CostFunction, Executor, Gradient, Hessian,
     },
@@ -46,9 +47,16 @@ fn main() {
     let init_param = vec![-1.2, 1.0];
     let linesearch = MoreThuenteLineSearch::new();
     let solver = SteepestDescent::new(linesearch);
+    let checkpoint = FileCheckpoint::new(
+        "checkpoints",
+        "01-rosenbrock",
+        CheckpointingFrequency::Every(5),
+    );
+
     let res = Executor::new(problem, solver)
         .configure(|state| state.param(init_param).max_iters(10))
         .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .checkpointing(checkpoint)
         .run()
         .unwrap();
     println!("{}", res);
