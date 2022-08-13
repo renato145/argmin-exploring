@@ -1,7 +1,7 @@
 use argmin::{
     core::{
         observers::{ObserverMode, SlogLogger},
-        Executor, State,
+        Executor, State, TerminationReason,
     },
     solver::{
         gradientdescent::SteepestDescent,
@@ -22,6 +22,7 @@ struct Result {
     method: String,
     best_cost: f64,
     time: String,
+    termination_reason: TerminationReason,
 }
 
 impl Result {
@@ -30,6 +31,7 @@ impl Result {
         method: impl ToString,
         best_cost: f64,
         time: Option<Duration>,
+        termination_reason: TerminationReason,
     ) -> Self {
         let time = time
             .map(|d| format!("{d:?}"))
@@ -39,6 +41,7 @@ impl Result {
             method: method.to_string(),
             best_cost,
             time,
+            termination_reason,
         }
     }
 }
@@ -71,6 +74,7 @@ fn main() {
         "Backtracking",
         backtracking_res.state.get_best_cost(),
         backtracking_res.state.get_time(),
+        backtracking_res.state.get_termination_reason(),
     ));
 
     // Linear search - More-Thuente
@@ -87,6 +91,7 @@ fn main() {
         "More-Thuente",
         morethuente_res.state.get_best_cost(),
         morethuente_res.state.get_time(),
+        morethuente_res.state.get_termination_reason(),
     ));
 
     // Linear search - Hager-Zhang
@@ -103,6 +108,7 @@ fn main() {
         "Hager-Zhang",
         hagerzhang_res.state.get_best_cost(),
         hagerzhang_res.state.get_time(),
+        hagerzhang_res.state.get_termination_reason(),
     ));
 
     // Trust Region - Cauchy Point
@@ -119,6 +125,7 @@ fn main() {
         "Cauchy-Point",
         cauchy_point_res.state.get_best_cost(),
         cauchy_point_res.state.get_time(),
+        cauchy_point_res.state.get_termination_reason(),
     ));
 
     // Results table
