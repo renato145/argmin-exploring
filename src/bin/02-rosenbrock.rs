@@ -14,9 +14,10 @@ use argmin::{
 };
 use argmin_exploring::Rosenbrock;
 use std::time::Duration;
-use tabled::{Style, Table, Tabled};
+use tabled::{Header, Style, Table, Tabled};
 
 #[derive(Tabled)]
+#[tabled(rename_all = "Pascal")]
 struct Result {
     family: String,
     method: String,
