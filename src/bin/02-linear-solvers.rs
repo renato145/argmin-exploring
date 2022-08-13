@@ -7,7 +7,10 @@ use argmin::{
     },
     solver::{
         gradientdescent::SteepestDescent,
-        linesearch::{condition::ArmijoCondition, BacktrackingLineSearch, MoreThuenteLineSearch},
+        linesearch::{
+            condition::ArmijoCondition, BacktrackingLineSearch, HagerZhangLineSearch,
+            MoreThuenteLineSearch,
+        },
     },
 };
 use argmin_exploring::Rosenbrock;
@@ -60,7 +63,7 @@ fn main() {
     let morethuente_solver = SteepestDescent::new(morethuente);
     let morethuente_res = Executor::new(problem, morethuente_solver)
         .add_observer(SlogLogger::term(), ObserverMode::Always)
-        .configure(|state| state.param(init_param).max_iters(iterations))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
     println!("More-Thuente: {morethuente_res}");
@@ -68,6 +71,21 @@ fn main() {
         "More-Thuente",
         morethuente_res.state.get_best_cost(),
         morethuente_res.state.get_time(),
+    ));
+
+    // Hager-Zhang
+    let hagerzhang = HagerZhangLineSearch::new();
+    let hagerzhang_solver = SteepestDescent::new(hagerzhang);
+    let hagerzhang_res = Executor::new(problem, hagerzhang_solver)
+        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .configure(|state| state.param(init_param).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("Hager-Zhang: {hagerzhang_res}");
+    results.push(Result::new(
+        "Hager-Zhang",
+        hagerzhang_res.state.get_best_cost(),
+        hagerzhang_res.state.get_time(),
     ));
 
     let table = Table::new(results).with(Style::modern()).to_string();
