@@ -3,7 +3,7 @@ use argmin_testfunctions::{rosenbrock_2d, rosenbrock_2d_derivative, rosenbrock_2
 
 /// The rosenbrock function is defined as:
 /// $ f(x,y) = (a-x)^2 + b(y-x^2)^2 $
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Rosenbrock {
     a: f64,
     b: f64,
