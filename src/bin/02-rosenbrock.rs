@@ -27,6 +27,7 @@ struct Result {
     method: String,
     best_cost: f64,
     time: String,
+    iterations: u64,
     termination_reason: TerminationReason,
 }
 
@@ -36,6 +37,7 @@ impl Result {
         method: impl ToString,
         best_cost: f64,
         time: Option<Duration>,
+        iterations: u64,
         termination_reason: TerminationReason,
     ) -> Self {
         let time = time
@@ -46,6 +48,7 @@ impl Result {
             method: method.to_string(),
             best_cost,
             time,
+            iterations,
             termination_reason,
         }
     }
@@ -87,6 +90,7 @@ fn main() {
         "Backtracking",
         backtracking_res.state.get_best_cost(),
         backtracking_res.state.get_time(),
+        backtracking_res.state.get_iter(),
         backtracking_res.state.get_termination_reason(),
     ));
 
@@ -104,6 +108,7 @@ fn main() {
         "More-Thuente",
         morethuente_res.state.get_best_cost(),
         morethuente_res.state.get_time(),
+        morethuente_res.state.get_iter(),
         morethuente_res.state.get_termination_reason(),
     ));
 
@@ -121,6 +126,7 @@ fn main() {
         "Hager-Zhang",
         hagerzhang_res.state.get_best_cost(),
         hagerzhang_res.state.get_time(),
+        hagerzhang_res.state.get_iter(),
         hagerzhang_res.state.get_termination_reason(),
     ));
 
@@ -138,6 +144,7 @@ fn main() {
         "Cauchy-Point",
         cauchy_point_res.state.get_best_cost(),
         cauchy_point_res.state.get_time(),
+        cauchy_point_res.state.get_iter(),
         cauchy_point_res.state.get_termination_reason(),
     ));
 
@@ -173,6 +180,7 @@ fn main() {
         "Steighaug",
         steighaug_res.state.get_best_cost(),
         steighaug_res.state.get_time(),
+        steighaug_res.state.get_iter(),
         steighaug_res.state.get_termination_reason(),
     ));
 
@@ -190,9 +198,10 @@ fn main() {
     println!("non-linear conjugate gradient: {nlcg_res}");
     results.push(Result::new(
         "Conjugate Gradient",
-        "Non-linear Conjugate Gradient",
+        "Non-linear CG",
         nlcg_res.state.get_best_cost(),
         nlcg_res.state.get_time(),
+        nlcg_res.state.get_iter(),
         nlcg_res.state.get_termination_reason(),
     ));
 
@@ -209,6 +218,7 @@ fn main() {
         "Newton",
         newton_res.state.get_best_cost(),
         newton_res.state.get_time(),
+        newton_res.state.get_iter(),
         newton_res.state.get_termination_reason(),
     ));
 
@@ -226,6 +236,7 @@ fn main() {
         "Newton-CG",
         newton_cg_res.state.get_best_cost(),
         newton_cg_res.state.get_time(),
+        newton_cg_res.state.get_iter(),
         newton_cg_res.state.get_termination_reason(),
     ));
 
@@ -249,6 +260,7 @@ fn main() {
         "BFGS",
         bfgs_res.state.get_best_cost(),
         bfgs_res.state.get_time(),
+        bfgs_res.state.get_iter(),
         bfgs_res.state.get_termination_reason(),
     ));
 
@@ -272,6 +284,7 @@ fn main() {
         "DFP",
         dfp_res.state.get_best_cost(),
         dfp_res.state.get_time(),
+        dfp_res.state.get_iter(),
         dfp_res.state.get_termination_reason(),
     ));
 
@@ -289,6 +302,7 @@ fn main() {
         "L-BFGS",
         lbfgs_res.state.get_best_cost(),
         lbfgs_res.state.get_time(),
+        lbfgs_res.state.get_iter(),
         lbfgs_res.state.get_termination_reason(),
     ));
 
@@ -308,6 +322,7 @@ fn main() {
         "SR1-TrustRegion",
         sr1tr_res.state.get_best_cost(),
         sr1tr_res.state.get_time(),
+        sr1tr_res.state.get_iter(),
         sr1tr_res.state.get_termination_reason(),
     ));
 
