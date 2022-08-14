@@ -9,7 +9,7 @@ use argmin::{
             condition::ArmijoCondition, BacktrackingLineSearch, HagerZhangLineSearch,
             MoreThuenteLineSearch,
         },
-        trustregion::{CauchyPoint, TrustRegion},
+        trustregion::{CauchyPoint, TrustRegion, Steihaug},
     },
 };
 use argmin_exploring::Rosenbrock;
@@ -146,6 +146,23 @@ fn main() {
     //     dogleg_res.state.get_time(),
     //     dogleg_res.state.get_termination_reason(),
     // ));
+
+    // Trust Region - Steighaug
+    let steighaug = Steihaug::new();
+    let steighaug_solver = TrustRegion::new(steighaug);
+    let steighaug_res = Executor::new(problem, steighaug_solver)
+        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .configure(|state| state.param(init_param).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("steighaug: {steighaug_res}");
+    results.push(Result::new(
+        "Trust region",
+        "Steighaug",
+        steighaug_res.state.get_best_cost(),
+        steighaug_res.state.get_time(),
+        steighaug_res.state.get_termination_reason(),
+    ));
 
     // Results table
     let table = Table::new(results).with(Style::modern()).to_string();
