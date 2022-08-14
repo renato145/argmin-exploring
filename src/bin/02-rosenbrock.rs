@@ -10,6 +10,7 @@ use argmin::{
             condition::ArmijoCondition, BacktrackingLineSearch, HagerZhangLineSearch,
             MoreThuenteLineSearch,
         },
+        newton::{Newton, NewtonCG},
         trustregion::{CauchyPoint, Steihaug, TrustRegion},
     },
 };
@@ -192,6 +193,39 @@ fn main() {
         nlcg_res.state.get_best_cost(),
         nlcg_res.state.get_time(),
         nlcg_res.state.get_termination_reason(),
+    ));
+
+    // Newton - Newton's method
+    let newton = Newton::new();
+    let newton_res = Executor::new(problem, newton)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("newton: {newton_res}");
+    results.push(Result::new(
+        "Newton methods",
+        "Newton",
+        newton_res.state.get_best_cost(),
+        newton_res.state.get_time(),
+        newton_res.state.get_termination_reason(),
+    ));
+
+    // Newton - Newton-CG method
+    let linesearch = MoreThuenteLineSearch::new();
+    let newtong_cg = NewtonCG::new(linesearch);
+    let newtong_cg_res = Executor::new(problem, newtong_cg)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("newtong_cg: {newtong_cg_res}");
+    results.push(Result::new(
+        "Newtong methods",
+        "Newtong-CG",
+        newtong_cg_res.state.get_best_cost(),
+        newtong_cg_res.state.get_time(),
+        newtong_cg_res.state.get_termination_reason(),
     ));
 
     // Results table
