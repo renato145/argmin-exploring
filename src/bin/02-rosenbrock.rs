@@ -4,12 +4,13 @@ use argmin::{
         Executor, State, TerminationReason,
     },
     solver::{
+        conjugategradient::{beta::PolakRibiere, NonlinearConjugateGradient},
         gradientdescent::SteepestDescent,
         linesearch::{
             condition::ArmijoCondition, BacktrackingLineSearch, HagerZhangLineSearch,
             MoreThuenteLineSearch,
         },
-        trustregion::{CauchyPoint, TrustRegion, Steihaug},
+        trustregion::{CauchyPoint, Steihaug, TrustRegion},
     },
 };
 use argmin_exploring::Rosenbrock;
@@ -152,7 +153,7 @@ fn main() {
     let steighaug_solver = TrustRegion::new(steighaug);
     let steighaug_res = Executor::new(problem, steighaug_solver)
         .add_observer(SlogLogger::term(), ObserverMode::Always)
-        .configure(|state| state.param(init_param).max_iters(iterations))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
     println!("steighaug: {steighaug_res}");
@@ -162,6 +163,26 @@ fn main() {
         steighaug_res.state.get_best_cost(),
         steighaug_res.state.get_time(),
         steighaug_res.state.get_termination_reason(),
+    ));
+
+    // Conjugate Gradient - Non-linear Conjugate Gradient
+    let linesearch = MoreThuenteLineSearch::new();
+    let beta_method = PolakRibiere::new();
+    let nlcg_solver = NonlinearConjugateGradient::new(linesearch, beta_method)
+        .restart_iters(10)
+        .restart_orthogonality(0.1);
+    let nlcg_res = Executor::new(problem, nlcg_solver)
+        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("non-linear conjugate gradient: {nlcg_res}");
+    results.push(Result::new(
+        "Conjugate Gradient",
+        "Non-linear Conjugate Gradient",
+        nlcg_res.state.get_best_cost(),
+        nlcg_res.state.get_time(),
+        nlcg_res.state.get_termination_reason(),
     ));
 
     // Results table
