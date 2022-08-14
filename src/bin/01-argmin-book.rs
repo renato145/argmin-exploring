@@ -7,6 +7,7 @@ use argmin::{
     solver::{gradientdescent::SteepestDescent, linesearch::MoreThuenteLineSearch},
 };
 use argmin_exploring::Rosenbrock;
+use ndarray::array;
 
 fn main() {
     let max_iters = std::env::args()
@@ -18,7 +19,7 @@ fn main() {
         .unwrap_or(10);
 
     let problem = Rosenbrock::default();
-    let init_param = vec![10.2, -20.0];
+    let init_param = array![10.2, -20.0];
     let linesearch = MoreThuenteLineSearch::new();
     let solver = SteepestDescent::new(linesearch);
     let checkpoint = FileCheckpoint::new(

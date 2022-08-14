@@ -13,8 +13,9 @@ use argmin::{
     },
 };
 use argmin_exploring::Rosenbrock;
+use ndarray::array;
 use std::time::Duration;
-use tabled::{Header, Style, Table, Tabled};
+use tabled::{Style, Table, Tabled};
 
 #[derive(Tabled)]
 #[tabled(rename_all = "Pascal")]
@@ -58,7 +59,7 @@ fn main() {
 
     println!("Line solver methods");
     let problem = Rosenbrock::default();
-    let init_param = vec![10.2, -20.0];
+    let init_param = array![10.2, -20.0];
     let mut results = Vec::new();
 
     // Linear search - Backtracking
@@ -117,7 +118,7 @@ fn main() {
     let cauchy_point_solver = TrustRegion::new(cauchy_point);
     let cauchy_point_res = Executor::new(problem, cauchy_point_solver)
         .add_observer(SlogLogger::term(), ObserverMode::Always)
-        .configure(|state| state.param(init_param).max_iters(iterations))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
     println!("Cauchy-Point: {cauchy_point_res}");
@@ -128,6 +129,23 @@ fn main() {
         cauchy_point_res.state.get_time(),
         cauchy_point_res.state.get_termination_reason(),
     ));
+
+    // // Trust Region - Dogleg
+    // let dogleg = Dogleg::new();
+    // let dogleg_solver = TrustRegion::new(dogleg);
+    // let dogleg_res = Executor::new(problem, dogleg_solver)
+    //     .add_observer(SlogLogger::term(), ObserverMode::Always)
+    //     .configure(|state| state.param(init_param).max_iters(iterations))
+    //     .run()
+    //     .unwrap();
+    // println!("Dogleg: {dogleg_res}");
+    // results.push(Result::new(
+    //     "Trust region",
+    //     "Dogleg",
+    //     dogleg_res.state.get_best_cost(),
+    //     dogleg_res.state.get_time(),
+    //     dogleg_res.state.get_termination_reason(),
+    // ));
 
     // Results table
     let table = Table::new(results).with(Style::modern()).to_string();
