@@ -50,11 +50,19 @@ impl Result {
 }
 
 fn main() {
-    let iterations = std::env::args()
-        .nth(1)
+    let mut args = std::env::args().skip(1);
+    let iterations = args
+        .next()
         .map(|x| {
             x.parse()
                 .unwrap_or_else(|x| panic!("Invalid number for `max_iters`: {x}"))
+        })
+        .unwrap_or(100);
+    let log_every = args
+        .next()
+        .map(|x| {
+            x.parse()
+                .unwrap_or_else(|x| panic!("Invalid number for `log_every`: {x}"))
         })
         .unwrap_or(10);
 
@@ -67,7 +75,7 @@ fn main() {
     let backtracking = BacktrackingLineSearch::new(ArmijoCondition::new(0.0001).unwrap());
     let backtracking_solver = SteepestDescent::new(backtracking);
     let backtracking_res = Executor::new(problem, backtracking_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
@@ -84,7 +92,7 @@ fn main() {
     let morethuente = MoreThuenteLineSearch::new();
     let morethuente_solver = SteepestDescent::new(morethuente);
     let morethuente_res = Executor::new(problem, morethuente_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
@@ -101,7 +109,7 @@ fn main() {
     let hagerzhang = HagerZhangLineSearch::new();
     let hagerzhang_solver = SteepestDescent::new(hagerzhang);
     let hagerzhang_res = Executor::new(problem, hagerzhang_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
@@ -118,7 +126,7 @@ fn main() {
     let cauchy_point = CauchyPoint::new();
     let cauchy_point_solver = TrustRegion::new(cauchy_point);
     let cauchy_point_res = Executor::new(problem, cauchy_point_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
@@ -131,11 +139,12 @@ fn main() {
         cauchy_point_res.state.get_termination_reason(),
     ));
 
+    // BUG HERE
     // // Trust Region - Dogleg
     // let dogleg = Dogleg::new();
     // let dogleg_solver = TrustRegion::new(dogleg);
     // let dogleg_res = Executor::new(problem, dogleg_solver)
-    //     .add_observer(SlogLogger::term(), ObserverMode::Always)
+    //     .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
     //     .configure(|state| state.param(init_param).max_iters(iterations))
     //     .run()
     //     .unwrap();
@@ -152,7 +161,7 @@ fn main() {
     let steighaug = Steihaug::new();
     let steighaug_solver = TrustRegion::new(steighaug);
     let steighaug_res = Executor::new(problem, steighaug_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
@@ -172,7 +181,7 @@ fn main() {
         .restart_iters(10)
         .restart_orthogonality(0.1);
     let nlcg_res = Executor::new(problem, nlcg_solver)
-        .add_observer(SlogLogger::term(), ObserverMode::Always)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
