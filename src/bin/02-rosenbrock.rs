@@ -71,7 +71,6 @@ fn main() {
         })
         .unwrap_or(10);
 
-    println!("Line solver methods");
     let problem = Rosenbrock::default();
     let init_param = array![10.2, -20.0];
     let mut results = Vec::new();
