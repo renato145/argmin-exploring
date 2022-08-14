@@ -11,11 +11,12 @@ use argmin::{
             MoreThuenteLineSearch,
         },
         newton::{Newton, NewtonCG},
+        quasinewton::{SR1TrustRegion, BFGS, DFP, LBFGS},
         trustregion::{CauchyPoint, Steihaug, TrustRegion},
     },
 };
 use argmin_exploring::Rosenbrock;
-use ndarray::array;
+use ndarray::{array, Array2};
 use std::time::Duration;
 use tabled::{Style, Table, Tabled};
 
@@ -140,7 +141,7 @@ fn main() {
         cauchy_point_res.state.get_termination_reason(),
     ));
 
-    // BUG HERE
+    // BUG HERE: https://github.com/argmin-rs/argmin/issues/246
     // // Trust Region - Dogleg
     // let dogleg = Dogleg::new();
     // let dogleg_solver = TrustRegion::new(dogleg);
@@ -213,19 +214,101 @@ fn main() {
 
     // Newton - Newton-CG method
     let linesearch = MoreThuenteLineSearch::new();
-    let newtong_cg = NewtonCG::new(linesearch);
-    let newtong_cg_res = Executor::new(problem, newtong_cg)
+    let newton_cg = NewtonCG::new(linesearch);
+    let newton_cg_res = Executor::new(problem, newton_cg)
         .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.param(init_param.clone()).max_iters(iterations))
         .run()
         .unwrap();
-    println!("newtong_cg: {newtong_cg_res}");
+    println!("newton_cg: {newton_cg_res}");
     results.push(Result::new(
-        "Newtong methods",
-        "Newtong-CG",
-        newtong_cg_res.state.get_best_cost(),
-        newtong_cg_res.state.get_time(),
-        newtong_cg_res.state.get_termination_reason(),
+        "Newton methods",
+        "Newton-CG",
+        newton_cg_res.state.get_best_cost(),
+        newton_cg_res.state.get_time(),
+        newton_cg_res.state.get_termination_reason(),
+    ));
+
+    // Quasi Newton - BFGS
+    let linesearch = MoreThuenteLineSearch::new();
+    let bfgs = BFGS::new(linesearch);
+    let bfgs_res = Executor::new(problem, bfgs)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| {
+            state
+                .param(init_param.clone())
+                // Hessian type required to initialize
+                .inv_hessian(Array2::eye(2))
+                .max_iters(iterations)
+        })
+        .run()
+        .unwrap();
+    println!("bfgs: {bfgs_res}");
+    results.push(Result::new(
+        "Quasi-Newton methods",
+        "BFGS",
+        bfgs_res.state.get_best_cost(),
+        bfgs_res.state.get_time(),
+        bfgs_res.state.get_termination_reason(),
+    ));
+
+    // Quasi Newton - DFP
+    let linesearch = MoreThuenteLineSearch::new();
+    let dfp = DFP::new(linesearch);
+    let dfp_res = Executor::new(problem, dfp)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| {
+            state
+                .param(init_param.clone())
+                // Hessian type required to initialize
+                .inv_hessian(Array2::eye(2))
+                .max_iters(iterations)
+        })
+        .run()
+        .unwrap();
+    println!("dfp: {dfp_res}");
+    results.push(Result::new(
+        "Quasi-Newton methods",
+        "DFP",
+        dfp_res.state.get_best_cost(),
+        dfp_res.state.get_time(),
+        dfp_res.state.get_termination_reason(),
+    ));
+
+    // Quasi Newton - L-BFGS
+    let linesearch = MoreThuenteLineSearch::new();
+    let lbfgs = LBFGS::new(linesearch, 5);
+    let lbfgs_res = Executor::new(problem, lbfgs)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("lbfgs: {lbfgs_res}");
+    results.push(Result::new(
+        "Quasi-Newton methods",
+        "L-BFGS",
+        lbfgs_res.state.get_best_cost(),
+        lbfgs_res.state.get_time(),
+        lbfgs_res.state.get_termination_reason(),
+    ));
+
+    // Quasi Newton - SR1: https://github.com/argmin-rs/argmin/issues/221
+
+    // Quasi Newton - SR1-Trust Region
+    let subproblem = Steihaug::new();
+    let sr1tr = SR1TrustRegion::new(subproblem);
+    let sr1tr_res = Executor::new(problem, sr1tr)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("sr1tr: {sr1tr_res}");
+    results.push(Result::new(
+        "Quasi-Newton methods",
+        "SR1-TrustRegion",
+        sr1tr_res.state.get_best_cost(),
+        sr1tr_res.state.get_time(),
+        sr1tr_res.state.get_termination_reason(),
     ));
 
     // Results table
