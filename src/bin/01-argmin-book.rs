@@ -6,7 +6,7 @@ use argmin::{
     },
     solver::{gradientdescent::SteepestDescent, linesearch::MoreThuenteLineSearch},
 };
-use argmin_exploring::Rosenbrock;
+use argmin_exploring::RosenbrockND;
 use ndarray::array;
 
 fn main() {
@@ -18,7 +18,7 @@ fn main() {
         })
         .unwrap_or(10);
 
-    let problem = Rosenbrock::default();
+    let problem = RosenbrockND::default();
     let init_param = array![10.2, -20.0];
     let linesearch = MoreThuenteLineSearch::new();
     let solver = SteepestDescent::new(linesearch);
