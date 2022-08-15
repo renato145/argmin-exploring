@@ -49,6 +49,8 @@ dependencies = [
  "argmin_testfunctions",
  "ndarray",
  "ndarray-linalg",
+ "rand",
+ "rand_xoshiro",
  "tabled",
 ]
 
