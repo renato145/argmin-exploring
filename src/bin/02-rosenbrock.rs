@@ -16,7 +16,7 @@ use argmin::{
         particleswarm::ParticleSwarm,
         quasinewton::{SR1TrustRegion, BFGS, DFP, LBFGS},
         simulatedannealing::SimulatedAnnealing,
-        trustregion::{CauchyPoint, Steihaug, TrustRegion},
+        trustregion::{CauchyPoint, Dogleg, Steihaug, TrustRegion},
     },
 };
 use argmin_exploring::{RosenbrockND, RosenbrockVec};
@@ -32,7 +32,7 @@ struct Result {
     best_cost: f64,
     time: String,
     iterations: u64,
-    termination_reason: TerminationReason,
+    termination_reason: String,
 }
 
 impl Result {
@@ -42,11 +42,16 @@ impl Result {
         best_cost: f64,
         time: Option<Duration>,
         iterations: u64,
-        termination_reason: TerminationReason,
+        termination_reason: Option<&TerminationReason>,
     ) -> Self {
         let time = time
             .map(|d| format!("{d:?}"))
             .unwrap_or_else(|| "-".to_string());
+
+        let termination_reason = match termination_reason {
+            Some(x) => format!("{x}"),
+            None => "-".to_string(),
+        };
         Self {
             family: family.to_string(),
             method: method.to_string(),
@@ -89,6 +94,7 @@ fn main() {
         .run()
         .unwrap();
     println!("Backtracking: {backtracking_res}");
+
     results.push(Result::new(
         "Linear search",
         "Backtracking",
@@ -152,23 +158,23 @@ fn main() {
         cauchy_point_res.state.get_termination_reason(),
     ));
 
-    // BUG HERE: https://github.com/argmin-rs/argmin/issues/246
-    // // Trust Region - Dogleg
-    // let dogleg = Dogleg::new();
-    // let dogleg_solver = TrustRegion::new(dogleg);
-    // let dogleg_res = Executor::new(problem.clone(), dogleg_solver)
-    //     .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
-    //     .configure(|state| state.param(init_param).max_iters(iterations))
-    //     .run()
-    //     .unwrap();
-    // println!("Dogleg: {dogleg_res}");
-    // results.push(Result::new(
-    //     "Trust region",
-    //     "Dogleg",
-    //     dogleg_res.state.get_best_cost(),
-    //     dogleg_res.state.get_time(),
-    //     dogleg_res.state.get_termination_reason(),
-    // ));
+    // Trust Region - Dogleg
+    let dogleg = Dogleg::new();
+    let dogleg_solver = TrustRegion::new(dogleg);
+    let dogleg_res = Executor::new(problem.clone(), dogleg_solver)
+        .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
+        .configure(|state| state.param(init_param.clone()).max_iters(iterations))
+        .run()
+        .unwrap();
+    println!("Dogleg: {dogleg_res}");
+    results.push(Result::new(
+        "Trust region",
+        "Dogleg",
+        dogleg_res.state.get_best_cost(),
+        dogleg_res.state.get_time(),
+        dogleg_res.state.get_iter(),
+        dogleg_res.state.get_termination_reason(),
+    ));
 
     // Trust Region - Steighaug
     let steighaug = Steihaug::new();
@@ -310,8 +316,6 @@ fn main() {
         lbfgs_res.state.get_termination_reason(),
     ));
 
-    // Quasi Newton - SR1: https://github.com/argmin-rs/argmin/issues/221
-
     // Quasi Newton - SR1-Trust Region
     let subproblem = Steihaug::new();
     let sr1tr = SR1TrustRegion::new(subproblem);
@@ -382,7 +386,7 @@ fn main() {
     ));
 
     // Particle swarm optimization
-    let particle_swarm = ParticleSwarm::new((vec![-5.0, -5.0], vec![5.0, 5.0]), 100);
+    let particle_swarm = ParticleSwarm::new((vec![-5.0, -5.0], vec![5.0, 5.0]), 500);
     let particle_swarm_res = Executor::new(problem_vec.clone(), particle_swarm)
         .add_observer(SlogLogger::term(), ObserverMode::Every(log_every))
         .configure(|state| state.max_iters(iterations))
